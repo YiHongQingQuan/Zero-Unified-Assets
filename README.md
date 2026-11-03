@@ -15,7 +15,7 @@
 | --- | --- |
 | **AI 讲解员** | 语音提问 → 百度语音识别 → DeepSeek 大模型作答 → 打字机效果上屏；另有一套文字输入框版本 |
 | **空间站拆解** | 天和 / 天舟 / 梦天 / 神舟 / 问天 五舱段拆解与复位动画、讲解画布翻页、展厅相机切换 |
-| **拼图游戏** | 三套鼠标拖拽吸附式拼图，全部归位后弹出通关面板 |
+| **拼图游戏** | 鼠标拖拽吸附式拼图：`PuzzlePiece` 管单块、`PuzzleGroup` 管分组判定，可复用于任意套数 |
 | **自由漫游** | 虚拟摇杆 + 相机朝向移动 |
 | **展馆交互** | 双开自动门、视频播放/暂停、展品点击查看图片、触发区显隐面板 |
 | **场景路由** | 启动页 → 航天 / AR，ESC 返回，退出程序 |
@@ -25,14 +25,13 @@
 ```
 Assets/
 ├── Scripts/
-│   ├── AI/            3 + 1  ApiConfig · DeepSeekAPI · TalkManager · VoiceToText
-│   ├── Interaction/   6      DoorMove · DoorBack · VideoPlay · VideoTrigger
+│   ├── AI/            4      ApiConfig · DeepSeekAPI · TalkManager · VoiceToText
+│   ├── Interaction/   5      SlidingDoor · VideoPlay · VideoTrigger
 │   │                         PictureClickManager · ToPuzzleTrigger
-│   ├── Puzzle/        7      CE5PA · CE5PP · MainCPA · MainCPP
-│   │                         SatellitePA · SatellitePP · ToPuzzle
+│   ├── Puzzle/        3      PuzzlePiece · PuzzleGroup · ToPuzzle
 │   ├── Roaming/       2      MyJoystick · MyJoystickBoxMove
 │   ├── Station/       6      KJZMove · Movetext1 · Next · Start · ToShowRoom · UnitMove
-│   └── UI/            5      Back · BackFromPicture · FunctionCanvas
+│   └── UI/            6      UiPointer · Back · BackFromPicture · FunctionCanvas
 │                             StartUIButtonManager · ToStart
 └── StreamingAssets/
     └── api-config.example.json   密钥模板（真实的 api-config.json 被 .gitignore 排除）
@@ -55,8 +54,7 @@ Assets/
 
 | 脚本 | 类名 | 职责 | 关键引用 |
 | --- | --- | --- | --- |
-| `Interaction/DoorMove.cs` | `TriggerMove` | 触发器进入后两扇门平滑打开 | `door1`/`door2`、`target1Pos`/`target2Pos` |
-| `Interaction/DoorBack.cs` | `DoorBack` | 同上，目标坐标不同（用于复位） | 同上 |
+| `Interaction/SlidingDoor.cs` | `SlidingDoor` | 触发器进入时双开门滑开或合上，`onEnter` 决定执行哪个动作 | `leftPanel`/`rightPanel`、`leftOpenPosition`/`rightOpenPosition` |
 | `Interaction/VideoPlay.cs` | `PlayVideo` | 同一按钮切换视频播放 / 暂停 | `vPlayer`、`button` |
 | `Interaction/VideoTrigger.cs` | `VideoTrigger` | 进出触发区时显隐视频面板 | `gamObject` |
 | `Interaction/PictureClickManager.cs` | `PictureClickManager` | 鼠标射线拾取展品，打开对应图片画布 | `canvas[]`、`transforms[]` |
@@ -66,11 +64,11 @@ Assets/
 
 | 脚本 | 类名 | 职责 | 关键引用 |
 | --- | --- | --- | --- |
-| `Puzzle/CE5PP.cs` 等三个 `*PP` | `CE5PP` / `MainCPP` / `SatellitePP` | 单块拼图：鼠标拖拽 + 距离吸附判定 | `camera`、`targetPosition`、`maxLen` |
-| `Puzzle/CE5PA.cs` 等三个 `*PA` | `CE5PA` / `MainCPA` / `SatellitePA` | 汇总检测：所有块归位后显示通关面板 | `gameOverPanel` |
+| `Puzzle/PuzzlePiece.cs` | `PuzzlePiece` | 单块拼图：鼠标拖拽 + 距离吸附，归位后通知所属组 | `targetPosition`、`snapDistance`、`pickupCamera`、`group` |
+| `Puzzle/PuzzleGroup.cs` | `PuzzleGroup` | 分组判定：组内全部归位后显示通关面板 | `completePanel` |
 | `Puzzle/ToPuzzle.cs` | `ToPuzzle` | 点按钮切到拼图相机与画布 | `joystick`、`canva`、`NowCamera`、`NextCamera` |
 
-三套 `*P` 脚本逻辑完全同构，只是各自场景独立使用，可按需保留一套。
+一套 `PuzzlePiece` + `PuzzleGroup` 可以重复使用任意多次，各套之间互不干扰。
 
 ### Roaming
 
@@ -94,11 +92,27 @@ Assets/
 
 | 脚本 | 类名 | 职责 | 关键引用 |
 | --- | --- | --- | --- |
+| `UI/UiPointer.cs` | `UiPointer` | 静态工具：把鼠标点击解析成被点中的控件，替代 `currentSelectedGameObject` | — |
 | `UI/Back.cs` | `Back` | 退出拼图，恢复漫游相机 / 摇杆 / 界面 | `joystick`、`NowCamera`/`NextCamera`、`canva` |
 | `UI/BackFromPicture.cs` | `BackFromPicture` | 关闭图片查看画布 | `canvas` |
 | `UI/FunctionCanvas.cs` | `FunctionCanvas` | 功能面板：ESC 回启动页、AI 面板开关 | `ai`、`ESCButton`、`AIButton`、`ESCAIButton` |
 | `UI/StartUIButtonManager.cs` | `StartUIButtonManager` | 启动页按钮 → 航天 / AR / 退出 | `buttons[]` |
 | `UI/ToStart.cs` | `ToStart` | ESC 回启动页 | — |
+
+## 从旧版本迁移
+
+重构时合并/删除了 8 个脚本。如果你的场景里还挂着旧组件，会显示 **Missing Script**，按下表替换：
+
+| 旧脚本 | 新组件 | 需要做的事 |
+| --- | --- | --- |
+| `CE5PP` / `MainCPP` / `SatellitePP` | `PuzzlePiece` | 逐块替换；`m_Camera`/`camera` → `pickupCamera`，`maxLen` → `snapDistance`；`group` 留空会自动向父节点找 `PuzzleGroup` |
+| `CE5PA` / `MainCPA` / `SatellitePA` | `PuzzleGroup` | 挂在原来的父节点上，`gameOverPanel` → `completePanel` |
+| `DoorMove`（类名 `TriggerMove`） | `SlidingDoor` | `onEnter = Open`；`door1`/`door2` → `leftPanel`/`rightPanel`，`target1Pos`/`target2Pos` → `leftOpenPosition`/`rightOpenPosition` |
+| `DoorBack` | `SlidingDoor` | `onEnter = Close`，其余同上 |
+
+另外新增了 `UI/UiPointer.cs`。所有脚本里原来判断
+`EventSystem.current.currentSelectedGameObject.name == "X"` 的地方，
+现在都改成 `UiPointer.IsClickOn("X")`，**按钮名不需要改**。
 
 ## 快速开始
 
@@ -179,20 +193,17 @@ cp Assets/StreamingAssets/api-config.example.json Assets/StreamingAssets/api-con
 
 ## 已知问题
 
-整理时只做了分类和依赖剥离，**逻辑保持原样**。以下问题待后续修复，接手时请留意：
+已完成：死循环、空引用、拼图/门的重复实现。以下问题**仍然存在**，接手时请留意：
 
 | 级别 | 位置 | 问题 |
 | --- | --- | --- |
-| 🔴 | `Station/KJZMove.cs:92` | `while (position != target)` 写在 `Update()` 里，单帧死循环；`deltaTime` 为 0 时直接冻结编辑器。且用 `!=` 比较浮点向量 |
 | 🔴 | `AI/DeepSeekAPI.cs:61` | `response.choices[0]` 没有任何容错，断网 / 超时 / 限流都会空引用，且 `loadingImage` 不会消失 |
-| 🟠 | 12 个文件共 21 处 | `EventSystem.current.currentSelectedGameObject.name` 取的是「当前选中对象」而非「本次点击对象」，点空白处即为 `null` → 空引用 |
-| 🟠 | `AI/VoiceToText.cs:45,50` | `Microphone.GetPosition` 忙等之后又 `WaitForSeconds(5)`，实际要等约 10 秒 |
-| 🟠 | `AI/VoiceToText.cs:113` | `response.result[0]` 未判空，识别失败时越界 |
-| 🟠 | `Puzzle/`、`Interaction/` | 三套拼图、两套门脚本逐行重复，可合并为一个泛型 / 参数化实现 |
+| 🟠 | `AI/VoiceToText.cs:40,45` | `Microphone.GetPosition` 忙等之后又 `WaitForSeconds(5)`，实际要等约 10 秒 |
+| 🟠 | `AI/VoiceToText.cs:108` | `response.result[0]` 未判空，识别失败时越界 |
 | 🟠 | `AI/TalkManager.cs`、`AI/VoiceToText.cs` | 排版与打字机逻辑各一份（手写 28 全角宽度换行，用 `goto`），应抽成公共组件 |
 | 🟡 | `Roaming/MyJoystick.cs:13` | 用屏幕坐标 `eventData.position` 减世界坐标 `startPosition`，拖拽手感漂移 |
 | 🟡 | `Roaming/MyJoystickBoxMove.cs:15` | `FixedUpdate` 里用 `Time.deltaTime`，应为 `Time.fixedDeltaTime` |
-| 🟡 | 多处 | 世界坐标作为字段默认值硬编码，换场景即失效 |
+| 🟡 | `Interaction/SlidingDoor.cs` | 打开位置以世界坐标写在 Inspector 里，换场景需重新摆 |
 | 🟡 | `AI/*` | 逐字符 `Debug.Log`，且每写一个字就重设 `Text.text`，触发整块 UI 重建 |
 | 🟡 | `Interaction/PictureClickManager.cs` | `listLen` 未与 `canvas` / `transforms` 实际长度校验，越界即崩 |
 
@@ -201,16 +212,16 @@ cp Assets/StreamingAssets/api-config.example.json Assets/StreamingAssets/api-con
 | 文件 | 类名 |
 | --- | --- |
 | `Interaction/VideoPlay.cs` | `PlayVideo` |
-| `Interaction/DoorMove.cs` | `TriggerMove` |
 | `Station/UnitMove.cs` | `AnimationController` |
 | `Station/Start.cs` | `Start`（通用词，建议改 `StationStart`） |
 | `Station/Next.cs` | `Next`（通用词，建议改 `StationNext`） |
 
 ## 后续计划
 
-- [ ] 合并三套拼图、两套门脚本
-- [ ] 修复 `KJZMove` 死循环与全局空引用问题
+- [x] 合并三套拼图、两套门脚本
+- [x] 修复 `KJZMove` 死循环与全局空引用问题
 - [ ] 把按钮监听改为 `IPointerClickHandler` / `EventTrigger`，去掉按名字硬编码
+- [ ] `DeepSeekAPI` / `VoiceToText` 补网络错误处理（超时、限流、识别失败）
 - [ ] 抽出对话排版与打字机组件
 - [ ] UI 迁移到 TextMeshPro
 - [ ] 补一份可运行的示例场景
@@ -247,8 +258,9 @@ XCSJ 只出现在 4 个文件的 `using` 里，而这 4 个文件**没有用到�
 
 ## 说明
 
-- 脚本已统一为 **UTF-8 + CRLF**，可直接被 Unity / Visual Studio / Rider 正确读取
-- 除 Unity 内置模块外无其它第三方依赖；XCSJ 的无效引用已移除，详见上一节
+- 脚本统一为 **UTF-8 + LF**（由 `.gitattributes` 保证仓库内一致），Unity / Visual Studio / Rider 均可正确读取
+- 除 Unity 内置模块外无其它第三方依赖；XCSJ 的无效引用已移除，详见下一节
+- 全部脚本已用 Unity 2021.3.33 的引用程序集做过编译校验，无语法与类型错误
 - 本项目仅用于教学传承，请勿将接入的第三方 API 密钥用于生产环境
 
 ## 许可证
