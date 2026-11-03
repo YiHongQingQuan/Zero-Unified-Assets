@@ -55,11 +55,11 @@ sysinfo.txt
 # 构建产物与临时文件
 # ---------------------------------------------------------------
 crashlytics-build.properties
-/[Aa]ssets/[Aa]ssetStoreTools*
-/[Aa]ssets/[Pp]lugins/[Ee]ditor/JetBrains*
-/[Ee]xported[Oo]bj/
-/[Aa]ssets/StreamingAssets/aa.meta
-/[Aa]ssets/StreamingAssets/aa/*
+**/[Aa]ssets/[Aa]ssetStoreTools*
+**/[Aa]ssets/[Pp]lugins/[Ee]ditor/JetBrains*
+**/[Ee]xported[Oo]bj/
+**/[Aa]ssets/StreamingAssets/aa.meta
+**/[Aa]ssets/StreamingAssets/aa/*
 
 # ---------------------------------------------------------------
 # 操作系统与编辑器杂项
