@@ -3,7 +3,7 @@ using UnityEngine;
 /// <summary>
 /// 双开自动门：触发器进入时滑开或合上，动作由 <see cref="onEnter"/> 决定。
 ///
-/// 「打开」是滑到 Inspector 里设定的打开位置，「合上」是回到 Start 时记录的位置。
+/// 打开位置用「相对关闭位置的偏移」描述，因此换场景、挪门都不用重新量世界坐标。
 /// </summary>
 public class SlidingDoor : MonoBehaviour
 {
@@ -18,9 +18,12 @@ public class SlidingDoor : MonoBehaviour
     public Transform leftPanel;
     public Transform rightPanel;
 
-    [Header("打开位置（世界坐标）")]
-    public Vector3 leftOpenPosition;
-    public Vector3 rightOpenPosition;
+    [Header("打开偏移")]
+    [Tooltip("左门板相对关闭位置的位移")]
+    public Vector3 leftOpenOffset = new Vector3(-4.285f, 0f, 0f);
+
+    [Tooltip("右门板相对关闭位置的位移")]
+    public Vector3 rightOpenOffset = new Vector3(4.585f, 0f, 0f);
 
     [Header("运动")]
     [Tooltip("移动速度，单位：米/秒")]
@@ -83,10 +86,10 @@ public class SlidingDoor : MonoBehaviour
         }
     }
 
-    /// <summary>滑开到设定的打开位置。</summary>
+    /// <summary>滑开到打开位置。</summary>
     public void Open()
     {
-        MoveTo(leftOpenPosition, rightOpenPosition);
+        MoveTo(leftClosedPosition + leftOpenOffset, rightClosedPosition + rightOpenOffset);
     }
 
     /// <summary>合上，回到 Start 时记录的位置。</summary>

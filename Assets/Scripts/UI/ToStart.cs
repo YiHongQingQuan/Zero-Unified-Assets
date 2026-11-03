@@ -1,16 +1,14 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+/// <summary>
+/// 返回启动页。把按钮的 <c>onClick</c> 指到 <see cref="BackToStartUI"/> 即可。
+/// </summary>
 public class ToStart : MonoBehaviour
 {
-    void Update()
+    /// <summary>加载启动场景。</summary>
+    public void BackToStartUI()
     {
-        if (Input.GetMouseButtonUp(0))
-        {
-            if (UiPointer.IsClickOn("ESCButton"))
-            {
-                SceneManager.LoadScene("StartUI");
-            }
-        }
+        SceneManager.LoadScene("StartUI");
     }
 }

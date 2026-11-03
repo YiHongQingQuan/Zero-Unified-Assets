@@ -65,27 +65,6 @@ public class KJZMove : MonoBehaviour
         }
     }
 
-    private void Update()
-    {
-        if (!Input.GetMouseButtonUp(0))
-        {
-            return;
-        }
-
-        if (UiPointer.IsClickOn("MoveButton"))
-        {
-            Disassemble();
-        }
-        else if (UiPointer.IsClickOn("MoveBackButton"))
-        {
-            Reassemble();
-        }
-        else if (UiPointer.IsClickOn("BackButton"))
-        {
-            BackToMainCamera();
-        }
-    }
-
     /// <summary>拆解：舱段散开，按钮切换为「复位」。</summary>
     public void Disassemble()
     {

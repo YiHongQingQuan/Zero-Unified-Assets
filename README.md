@@ -27,12 +27,13 @@ Assets/
 ├── Scripts/
 │   ├── AI/            6      ApiConfig · DeepSeekAPI · DialogueLayout · DialogueView
 │   │                         TalkManager · VoiceToText
-│   ├── Interaction/   5      SlidingDoor · VideoPlay · VideoTrigger
+│   ├── Interaction/   5      SlidingDoor · PlayVideo · VideoTrigger
 │   │                         PictureClickManager · ToPuzzleTrigger
 │   ├── Puzzle/        3      PuzzlePiece · PuzzleGroup · ToPuzzle
 │   ├── Roaming/       2      MyJoystick · MyJoystickBoxMove
-│   ├── Station/       6      KJZMove · Movetext1 · Next · Start · ToShowRoom · UnitMove
-│   └── UI/            6      UiPointer · Back · BackFromPicture · FunctionCanvas
+│   ├── Station/       6      KJZMove · Movetext1 · StationNext · StationStart
+│   │                         ToShowRoom · AnimationController
+│   └── UI/            5      Back · BackFromPicture · FunctionCanvas
 │                             StartUIButtonManager · ToStart
 └── StreamingAssets/
     └── api-config.example.json   密钥模板（真实的 api-config.json 被 .gitignore 排除）
@@ -40,67 +41,67 @@ Assets/
 
 ## 脚本索引
 
-> 「关键引用」是你需要在 Inspector 里手动拖进去的字段。
+> - **关键引用**：需要在 Inspector 里手动拖进去的字段。
+> - **公开方法**：按钮的 `onClick` 应该绑到哪个方法。脚本不再按按钮名字判断，全部靠显式绑定。
 
 ### AI
 
-| 脚本 | 类名 | 职责 | 关键引用 |
-| --- | --- | --- | --- |
-| `AI/ApiConfig.cs` | `ApiConfig` | 读取 `StreamingAssets/api-config.json`，全局静态访问 | — |
-| `AI/DeepSeekAPI.cs` | `DeepSeekAPI` | 调用 DeepSeek `/chat/completions`，用回调把回答交给 UI；失败时给兜底文案 | `loadingImage`、`aiCharacter`（角色名 + 人设） |
-| `AI/DialogueLayout.cs` | `DialogueLayout` | 纯文本工具：按显示宽度折行（全角 1、半角 0.5），首行可单独设宽 | — |
-| `AI/DialogueView.cs` | `DialogueView` | 对话区排版：分隔线、缩进、说话人标签、打字机输出 | `output` |
-| `AI/TalkManager.cs` | `TalkManager` | 文字输入版对话：回车提交 → 显示发言 → 请求 AI → 逐字显示 | `deepSeek`、`dialogueView`、`inputField` |
-| `AI/VoiceToText.cs` | `VoiceToText` | 录音 → 百度语音识别 → 提问 → 逐字显示 | `deepSeek`、`dialogueView`、`recordingHint`、`waitingHint` |
+| 脚本 | 类名 | 职责 | 关键引用 | 公开方法 |
+| --- | --- | --- | --- | --- |
+| `AI/ApiConfig.cs` | `ApiConfig` | 读取 `StreamingAssets/api-config.json`，全局静态访问 | — | — |
+| `AI/DeepSeekAPI.cs` | `DeepSeekAPI` | 调用 DeepSeek `/chat/completions`，用回调把回答交给 UI；失败时给兜底文案 | `loadingImage`、`aiCharacter` | `SendToDeepSeek(message, callback)` |
+| `AI/DialogueLayout.cs` | `DialogueLayout` | 纯文本工具：按显示宽度折行（全角 1、半角 0.5） | — | — |
+| `AI/DialogueView.cs` | `DialogueView` | 对话区排版：分隔线、缩进、说话人标签、打字机输出 | `output` | `AppendPlayerLine`、`PlayReply` |
+| `AI/TalkManager.cs` | `TalkManager` | 文字输入版对话：回车提交 → 显示发言 → 请求 AI → 逐字显示 | `deepSeek`、`dialogueView`、`inputField` | 由 `InputField` 的提交事件驱动 |
+| `AI/VoiceToText.cs` | `VoiceToText` | 录音 → 百度语音识别 → 提问 → 逐字显示 | `deepSeek`、`dialogueView`、`recordingHint`、`waitingHint` | `StartListening` |
 
 ### Interaction
 
-| 脚本 | 类名 | 职责 | 关键引用 |
-| --- | --- | --- | --- |
-| `Interaction/SlidingDoor.cs` | `SlidingDoor` | 触发器进入时双开门滑开或合上，`onEnter` 决定执行哪个动作 | `leftPanel`/`rightPanel`、`leftOpenPosition`/`rightOpenPosition` |
-| `Interaction/VideoPlay.cs` | `PlayVideo` | 同一按钮切换视频播放 / 暂停 | `vPlayer`、`button` |
-| `Interaction/VideoTrigger.cs` | `VideoTrigger` | 进出触发区时显隐视频面板 | `gamObject` |
-| `Interaction/PictureClickManager.cs` | `PictureClickManager` | 鼠标射线拾取展品，打开对应图片画布 | `canvas[]`、`transforms[]` |
-| `Interaction/ToPuzzleTrigger.cs` | `ToPuzzleTrigger` | 进出触发区时显隐拼图面板 | `mgameObject` |
+| 脚本 | 类名 | 职责 | 关键引用 | 公开方法 |
+| --- | --- | --- | --- | --- |
+| `Interaction/SlidingDoor.cs` | `SlidingDoor` | 触发器进入时双开门滑开或合上 | `leftPanel`/`rightPanel`、`leftOpenOffset`/`rightOpenOffset` | `Open`、`Close` |
+| `Interaction/PlayVideo.cs` | `PlayVideo` | 播放 / 暂停视频 | `vPlayer` | `TogglePlayback` |
+| `Interaction/VideoTrigger.cs` | `VideoTrigger` | 进出触发区时显隐视频面板 | `gamObject` | — |
+| `Interaction/PictureClickManager.cs` | `PictureClickManager` | 射线拾取展品，打开对应图片画布 | `rayCamera`、`canvas[]`、`transforms[]` | — |
+| `Interaction/ToPuzzleTrigger.cs` | `ToPuzzleTrigger` | 进出触发区时显隐拼图面板 | `mgameObject` | — |
 
 ### Puzzle
 
-| 脚本 | 类名 | 职责 | 关键引用 |
-| --- | --- | --- | --- |
-| `Puzzle/PuzzlePiece.cs` | `PuzzlePiece` | 单块拼图：鼠标拖拽 + 距离吸附，归位后通知所属组 | `targetPosition`、`snapDistance`、`pickupCamera`、`group` |
-| `Puzzle/PuzzleGroup.cs` | `PuzzleGroup` | 分组判定：组内全部归位后显示通关面板 | `completePanel` |
-| `Puzzle/ToPuzzle.cs` | `ToPuzzle` | 点按钮切到拼图相机与画布 | `joystick`、`canva`、`NowCamera`、`NextCamera` |
+| 脚本 | 类名 | 职责 | 关键引用 | 公开方法 |
+| --- | --- | --- | --- | --- |
+| `Puzzle/PuzzlePiece.cs` | `PuzzlePiece` | 单块拼图：鼠标拖拽 + 距离吸附，归位后通知所属组 | `targetPosition`、`snapDistance`、`pickupCamera`、`group` | — |
+| `Puzzle/PuzzleGroup.cs` | `PuzzleGroup` | 分组判定：组内全部归位后显示通关面板 | `completePanel` | — |
+| `Puzzle/ToPuzzle.cs` | `ToPuzzle` | 切到拼图相机与画布 | `joystick`、`canva`、`canva2`、`NowCamera`、`NextCamera` | `EnterPuzzle` |
 
 一套 `PuzzlePiece` + `PuzzleGroup` 可以重复使用任意多次，各套之间互不干扰。
 
 ### Roaming
 
-| 脚本 | 类名 | 职责 | 关键引用 |
-| --- | --- | --- | --- |
-| `Roaming/MyJoystick.cs` | `MyJoystick` | 实现 `IDragHandler` 等接口的虚拟摇杆，输出 `inputVector` | `centerPoint`、`maxLen` |
-| `Roaming/MyJoystickBoxMove.cs` | `MyJoystickBoxMove` | 按摇杆输入沿相机水平朝向平移目标 | `myJoystick`、`target`、`gameCamera` |
+| 脚本 | 类名 | 职责 | 关键引用 | 公开方法 |
+| --- | --- | --- | --- | --- |
+| `Roaming/MyJoystick.cs` | `MyJoystick` | 虚拟摇杆，把拖动换算成归一化方向 | `background`、`handle`、`radius` | 输出 `InputVector` |
+| `Roaming/MyJoystickBoxMove.cs` | `MyJoystickBoxMove` | 按摇杆输入沿相机水平朝向平移目标 | `myJoystick`、`target`、`gameCamera` | — |
 
 ### Station
 
-| 脚本 | 类名 | 职责 | 关键引用 |
-| --- | --- | --- | --- |
-| `Station/KJZMove.cs` | `KJZMove` | 舱段拆解/复位动画、按钮互斥、主相机与展厅相机切换 | `modules[]`（舱段 + 拆解位置）、三个按钮、两个相机 |
-| `Station/Movetext1.cs` | `Movetext1` | 用 Animator 的 bool `IsPlay` 驱动讲解文字动画 | 自身 `Animator` |
-| `Station/Next.cs` | `Next` | 讲解画布翻页 | `NowCanva`/`NextCanva`、`NowObject`/`NextObject` |
-| `Station/Start.cs` | `Start` | 空间站内讲解 / 拆解 / 返回按钮总控 | 画布、按钮、相机、摇杆 |
-| `Station/ToShowRoom.cs` | `ToShowRoom` | 切到展厅相机与展厅画布 | `showRoomCanvas`、`showRoomCamera` |
-| `Station/UnitMove.cs` | `AnimationController` | 按钮点击播放指定名称的 Animator 状态 | `targetAnimator`、`triggerButton`、`animationName` |
+| 脚本 | 类名 | 职责 | 关键引用 | 公开方法 |
+| --- | --- | --- | --- | --- |
+| `Station/KJZMove.cs` | `KJZMove` | 舱段拆解 / 复位动画，相机切换 | `modules[]`（舱段 + 拆解位置）、三个按钮、两个相机 | `Disassemble`、`Reassemble`、`BackToMainCamera` |
+| `Station/Movetext1.cs` | `Movetext1` | 用 Animator 的 bool 参数驱动讲解文字动画 | `targetAnimator`、`boolParameter` | `PlayIn`、`PlayOut` |
+| `Station/StationNext.cs` | `StationNext` | 讲解画布翻页 | `NowCanva`/`NextCanva`、`NowObject`/`NextObject` | `ShowNext` |
+| `Station/StationStart.cs` | `StationStart` | 空间站内按钮总控 | 画布、按钮、相机、摇杆 | `OpenIntroduction`、`StartDisassembly`、`RestoreModules`、`BackToRoaming` |
+| `Station/ToShowRoom.cs` | `ToShowRoom` | 切到展厅相机与展厅画布 | `showRoomCanvas`、`showRoomCamera` | `EnterShowRoom` |
+| `Station/AnimationController.cs` | `AnimationController` | 点击播放指定名称的 Animator 状态 | `targetAnimator`、`triggerButton`、`animationName` | `PlayAnimation`（在 Start 中自动绑定按钮） |
 
 ### UI
 
-| 脚本 | 类名 | 职责 | 关键引用 |
-| --- | --- | --- | --- |
-| `UI/UiPointer.cs` | `UiPointer` | 静态工具：把鼠标点击解析成被点中的控件，替代 `currentSelectedGameObject` | — |
-| `UI/Back.cs` | `Back` | 退出拼图，恢复漫游相机 / 摇杆 / 界面 | `joystick`、`NowCamera`/`NextCamera`、`canva` |
-| `UI/BackFromPicture.cs` | `BackFromPicture` | 关闭图片查看画布 | `canvas` |
-| `UI/FunctionCanvas.cs` | `FunctionCanvas` | 功能面板：ESC 回启动页、AI 面板开关 | `ai`、`ESCButton`、`AIButton`、`ESCAIButton` |
-| `UI/StartUIButtonManager.cs` | `StartUIButtonManager` | 启动页按钮 → 航天 / AR / 退出 | `buttons[]` |
-| `UI/ToStart.cs` | `ToStart` | ESC 回启动页 | — |
+| 脚本 | 类名 | 职责 | 关键引用 | 公开方法 |
+| --- | --- | --- | --- | --- |
+| `UI/Back.cs` | `Back` | 退出拼图，恢复漫游相机 / 摇杆 / 界面 | `joystick`、`NowCamera`/`NextCamera`、`canva` | `BackToRoaming` |
+| `UI/BackFromPicture.cs` | `BackFromPicture` | 关闭图片查看画布 | `canvas` | `ClosePicture` |
+| `UI/FunctionCanvas.cs` | `FunctionCanvas` | 功能面板：返回启动页、AI 面板开合 | `ai`、`ESCButton`、`AIButton`、`joystick` | `BackToStartUI`、`OpenAiPanel`、`CloseAiPanel` |
+| `UI/StartUIButtonManager.cs` | `StartUIButtonManager` | 启动页按钮 → 航天 / AR / 退出 | `buttons[]` | 在 Start 中自动绑定 |
+| `UI/ToStart.cs` | `ToStart` | 返回启动页 | — | `BackToStartUI` |
 
 ## 快速开始
 
@@ -153,22 +154,26 @@ cp Assets/StreamingAssets/api-config.example.json Assets/StreamingAssets/api-con
 
 ### 4. 场景搭建要点
 
-脚本里有一批**按名字硬编码**的 UI 对象判断，你的按钮命名必须和它们一致：
+**按钮绑定**：脚本不按对象名判断点击，而是由按钮的 `onClick` 直接调用脚本的公开方法。
 
-| 对象名 | 出现次数 | 所属脚本 |
+操作路径：`Button` 组件 → `On Click ()` → `+` → 把挂脚本的物体拖进去 → 在方法下拉框里选。
+每个脚本该用哪个方法，见上面「脚本索引」的 **公开方法** 一列。
+
+常用绑定：
+
+| 按钮 | 目标组件 | 选择的方法 |
 | --- | --- | --- |
-| `Button (Legacy)` | 4 | `Back`、`BackFromPicture`、`ToPuzzle`、`PlayVideo` |
-| `MoveButton` / `MoveBackButton` | 3 / 3 | `KJZMove`、`Movetext1`、`Start` |
-| `ESCButton` | 2 | `FunctionCanvas`、`ToStart` |
-| `BackButton` | 2 | `KJZMove`、`Start` |
-| `AIButton` / `ESCAIButton` | 1 / 1 | `FunctionCanvas` |
-| `VoiceButton` | 1 | `VoiceToText` |
-| `IntroduceButton` | 1 | `Start` |
-| `ToShowButton` | 1 | `ToShowRoom` |
-| `Next` | 1 | `Next` |
+| 语音提问 | `VoiceToText` | `StartListening` |
+| 拆解演示 | `KJZMove` | `Disassemble` |
+| 舱段复位 | `KJZMove` | `Reassemble` |
+| 进入拼图 | `ToPuzzle` | `EnterPuzzle` |
+| 退出拼图 | `Back` | `BackToRoaming` |
+| 打开 AI 面板 | `FunctionCanvas` | `OpenAiPanel` |
+| 返回启动页 | `FunctionCanvas` / `ToStart` | `BackToStartUI` |
 
-场景名同样是硬编码的：`StartUI`、`航天`、`AR`（见 `StartUIButtonManager`、`FunctionCanvas`、`ToStart`）。
-想改场景名，记得同步修改这三处，并把场景加入 `File > Build Settings`。
+场景名仍是硬编码的：`StartUI`、`航天`、`AR`
+（见 `StartUIButtonManager`、`FunctionCanvas`、`ToStart`）。
+改场景名要同步改这三处，并把场景加入 `File > Build Settings`。
 
 ## 外部服务
 
@@ -184,20 +189,7 @@ cp Assets/StreamingAssets/api-config.example.json Assets/StreamingAssets/api-con
 
 | 级别 | 位置 | 问题 |
 | --- | --- | --- |
-| 🟡 | `Roaming/MyJoystick.cs:13` | 用屏幕坐标 `eventData.position` 减世界坐标 `startPosition`，拖拽手感漂移 |
-| 🟡 | `Roaming/MyJoystickBoxMove.cs:15` | `FixedUpdate` 里用 `Time.deltaTime`，应为 `Time.fixedDeltaTime` |
-| 🟡 | `Interaction/SlidingDoor.cs` | 打开位置以世界坐标写在 Inspector 里，换场景需重新摆 |
-| 🟡 | `AI/DialogueView.cs` | 逐字输出时每写一个字就重设 `Text.text`，会触发整块 UI 重建；换 TextMeshPro 可缓解 |
-| 🟡 | `Interaction/PictureClickManager.cs` | `listLen` 未与 `canvas` / `transforms` 实际长度校验，越界即崩 |
-
-**文件名与类名不一致**（Unity 允许，但检索时容易找不到）：
-
-| 文件 | 类名 |
-| --- | --- |
-| `Interaction/VideoPlay.cs` | `PlayVideo` |
-| `Station/UnitMove.cs` | `AnimationController` |
-| `Station/Start.cs` | `Start`（通用词，建议改 `StationStart`） |
-| `Station/Next.cs` | `Next`（通用词，建议改 `StationNext`） |
+| 🟡 | `AI/DialogueView.cs` | 逐字输出时每写一个字就重设一次 `Text.text`，会触发整块 UI 重建；换成 TextMeshPro 可缓解 |
 
 ## 后续计划
 
@@ -205,7 +197,8 @@ cp Assets/StreamingAssets/api-config.example.json Assets/StreamingAssets/api-con
 - [x] 修复 `KJZMove` 死循环与全局空引用问题
 - [x] 抽出对话排版与打字机组件（`DialogueLayout` + `DialogueView`）
 - [x] `DeepSeekAPI` / `VoiceToText` 补网络错误处理
-- [ ] 把按钮监听改为 `IPointerClickHandler` / `EventTrigger`，去掉按名字硬编码
+- [x] 按钮改为 `onClick` 显式绑定，去掉按名字硬编码
+- [x] 文件名与类名对齐
 - [ ] UI 迁移到 TextMeshPro
 - [ ] 补一份可运行的示例场景
 
@@ -217,12 +210,12 @@ XCSJ 只出现在 4 个文件的 `using` 里，而这 4 个文件**没有用到�
 
 原始引用完整记录如下，便于回溯：
 
-| 文件 | 原 `using` | 该文件实际用到的类型 |
-| --- | --- | --- |
-| `UI/BackFromPicture.cs` | `XCSJ.Interfaces` | `Transform`、`GameObject`、`Input`、`EventSystem` |
-| `Interaction/VideoPlay.cs` | `XCSJ.Interfaces` | `VideoPlayer`、`GameObject`、`Input`、`EventSystem` |
-| `Station/ToShowRoom.cs` | `XCSJ.PluginXXR.Interaction.Toolkit.Base` | `GameObject`、`Input`、`EventSystem` |
-| `Station/KJZMove.cs` | `XCSJ.PluginXXR.Interaction.Toolkit.Base` | `GameObject`、`Transform`、`Vector3`、`Action`、`IEnumerator`、`WaitForEndOfFrame` |
+| 文件 | 原 `using` |
+| --- | --- |
+| `UI/BackFromPicture.cs` | `XCSJ.Interfaces` |
+| `Interaction/PlayVideo.cs` | `XCSJ.Interfaces` |
+| `Station/ToShowRoom.cs` | `XCSJ.PluginXXR.Interaction.Toolkit.Base` |
+| `Station/KJZMove.cs` | `XCSJ.PluginXXR.Interaction.Toolkit.Base` |
 
 ### 如果你确实要接入 XCSJ
 

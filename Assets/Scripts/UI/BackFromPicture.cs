@@ -1,19 +1,20 @@
 using UnityEngine;
 
+/// <summary>
+/// 关闭正在查看的图片画布。
+/// 把按钮的 <c>onClick</c> 指到 <see cref="ClosePicture"/> 即可。
+/// </summary>
 public class BackFromPicture : MonoBehaviour
 {
+    [Tooltip("要关闭的画布")]
     public Transform canvas;
-    public GameObject button;
 
-    
-    void Update()
+    /// <summary>关闭图片画布。</summary>
+    public void ClosePicture()
     {
-        if (Input.GetMouseButtonUp(0))
+        if (canvas != null)
         {
-            if (UiPointer.IsClickOn("Button (Legacy)"))
-            {
-                canvas.gameObject.SetActive(false);
-            }
+            canvas.gameObject.SetActive(false);
         }
     }
 }

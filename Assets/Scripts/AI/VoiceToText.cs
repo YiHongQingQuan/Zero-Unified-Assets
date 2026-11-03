@@ -34,9 +34,10 @@ public class VoiceToText : MonoBehaviour
     private AudioClip clip;
     private bool busy;
 
-    private void Update()
+    /// <summary>开始一次语音提问。把语音按钮的 <c>onClick</c> 指到这里。</summary>
+    public void StartListening()
     {
-        if (busy || !Input.GetMouseButtonDown(0) || !UiPointer.IsClickOn("VoiceButton"))
+        if (busy)
         {
             return;
         }
