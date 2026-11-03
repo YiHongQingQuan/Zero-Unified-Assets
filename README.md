@@ -1,8 +1,8 @@
 # Zero-Unified-Assets
 
-> 按赛项归档的技术资产仓库 —— 代码、脚本与踩坑记录，留给下一届。
+> 按赛项归档的技术资产仓库
 
-## 这是什么
+## 关于 Zero-Unified-Assets
 
 一个按「赛项 / 课程」分目录归档的仓库。每个子目录是一个独立项目，各自带一份 README，
 说明它做了什么、依赖什么、怎么跑起来、有哪些已知问题。
@@ -15,11 +15,11 @@
 ```
 Zero-Unified-Assets/
 ├── 00_课程资料/                      课程作业与学习资料
-├── 01_CCCC/                          CCCC 赛项
+├── 01_CCCC/                          计算机设计大赛
 │   └── 2025_Unity_ExhibitionHall/       2025 · Unity 航天文化馆 AI 虚拟展馆
-├── 02_GPLT/                          GPLT 赛项（待补充）
-├── 03_MathematicalModeling/          数学建模（待补充）
-├── 04_Astar/                         A* 算法相关（待补充）
+├── 02_GPLT/                          团体程序设计天梯赛
+├── 03_MathematicalModeling/          数学建模
+├── 04_Astar/                         百度之星
 ├── LICENSE                           MIT，适用于全仓库
 ├── .gitignore                        Unity 工程与密钥的通用忽略规则
 └── .gitattributes                    换行符与二进制文件的统一约定
