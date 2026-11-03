@@ -1,0 +1,13 @@
+.venv/
+.venv.broken-*/
+__pycache__/
+*.pyc
+.pytest_cache/
+node_modules/
+out/
+python.txt
+tests/_out_*.docx
+tests/_ui*.png
+*.log
+.idea/
+.vscode/

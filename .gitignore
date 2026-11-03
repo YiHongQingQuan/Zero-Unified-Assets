@@ -74,3 +74,18 @@ $RECYCLE.BIN/
 *.swo
 *.bak
 *.tmp
+
+# ---------------------------------------------------------------
+# Python 子项目（工具类）
+# ---------------------------------------------------------------
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/

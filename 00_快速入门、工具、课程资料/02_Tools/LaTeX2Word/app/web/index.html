@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LaTeX2Word · 粘贴文本生成 Word 公式文档</title>
+<link rel="stylesheet" href="/static/vendor/katex/katex.min.css">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">∑</span>
+    <div class="brand-text">
+      <strong>LaTeX2Word</strong>
+      <span class="ver">v0.1.7</span>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <label class="field">
+      <span>灵敏度</span>
+      <select id="sensitivity">
+        <option value="conservative">保守</option>
+        <option value="standard" selected>标准</option>
+        <option value="aggressive">激进</option>
+      </select>
+    </label>
+
+    <label class="switch" title="识别 # 标题、- 列表、> 引用、表格、代码块">
+      <input type="checkbox" id="markdown"> 解析 Markdown
+    </label>
+
+    <label class="switch" title="关闭后只有空行才分段，适合整段粘贴">
+      <input type="checkbox" id="lineMode" checked> 每个换行成段
+    </label>
+
+    <button id="btnSample" class="ghost" type="button">示例</button>
+    <button id="btnSettings" class="ghost" type="button">⚙ 排版</button>
+    <button id="btnExport" class="primary" type="button">导出 Word</button>
+  </div>
+</header>
+
+<div id="engineWarning" class="banner hidden"></div>
+
+<main class="workspace">
+  <section class="pane">
+    <div class="pane-head">
+      <h2>① 粘贴文本</h2>
+      <span class="hint" id="charCount">0 字</span>
+    </div>
+    <textarea id="source" spellcheck="false" placeholder="把含公式的文本贴到这里，例如：
+
+质能方程 E=mc² 说明质量与能量等价。行内公式 $x^2+y^2=1$ 与独立公式：
+$$ \int_0^\infty e^{-x^2}\,dx = \frac{\sqrt{\pi}}{2} $$
+
+也可以直接拖入 .txt 文件。"></textarea>
+    <div class="pane-foot">
+      <span id="statsLine">等待输入…</span>
+    </div>
+  </section>
+
+  <section class="pane preview-pane">
+    <div class="pane-head">
+      <h2>② 成稿预览</h2>
+      <span class="hint" id="previewHint">公式以 KaTeX 近似显示，最终以导出的 docx 为准</span>
+    </div>
+    <div id="preview" class="paper">
+      <div class="empty">左侧粘贴文本后，这里会实时显示成稿效果</div>
+    </div>
+  </section>
+</main>
+
+<section class="formulas" id="formulaPanel">
+  <div class="pane-head">
+    <h2>③ 公式清单 <span class="count" id="formulaSummary"></span></h2>
+    <div class="actions">
+      <button id="btnAcceptAll" class="ghost sm" type="button">全部接受</button>
+      <button id="btnRejectAll" class="ghost sm" type="button">全部忽略</button>
+      <label class="switch sm"><input type="checkbox" id="onlyPending"> 只看待确认</label>
+      <button id="btnCollapse" class="ghost sm icon" type="button" title="折叠/展开">▾</button>
+    </div>
+  </div>
+  <div class="list-wrap">
+    <table id="formulaTable">
+      <thead>
+        <tr>
+          <th class="c-idx">#</th>
+          <th class="c-state">状态</th>
+          <th class="c-origin">来源</th>
+          <th class="c-type">类型</th>
+          <th>LaTeX</th>
+          <th class="c-why">判定依据</th>
+          <th class="c-op">操作</th>
+        </tr>
+      </thead>
+      <tbody id="formulaBody"></tbody>
+    </table>
+    <div id="formulaEmpty" class="empty small">还没有识别到公式</div>
+  </div>
+</section>
+
+<dialog id="settingsDialog">
+  <form method="dialog" class="settings">
+    <header class="settings-head">
+      <h3>排版设置</h3>
+      <p>只影响导出的 docx 和右侧预览；设置保存在本机浏览器，下次打开自动沿用。</p>
+    </header>
+
+    <section class="sect">
+      <h4 class="sect-title">字体、段落与页面</h4>
+      <div class="grid">
+        <label>中文字体 <input id="optCnFont" type="text" value="宋体"></label>
+        <label>西文字体 <input id="optEnFont" type="text" value="Times New Roman"></label>
+        <label>字号 (pt) <input id="optFontSize" type="number" min="8" max="24" step="0.5" value="12"></label>
+        <label>行距 (倍) <input id="optLineSpacing" type="number" min="1" max="3" step="0.05" value="1.5"></label>
+        <label>首行缩进 (字符) <input id="optIndent" type="number" min="0" max="4" step="0.5" value="2"></label>
+        <label>页边距 (cm) <input id="optMargin" type="number" min="0.5" max="5" step="0.1" value="2.54"></label>
+        <label>纸张
+          <select id="optPaper">
+            <option value="A4" selected>A4</option>
+            <option value="Letter">Letter</option>
+            <option value="A5">A5</option>
+            <option value="B5">B5</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section class="sect">
+      <h4 class="sect-title">公式格式</h4>
+      <div class="rows">
+        <label class="row">
+          <span class="row-head">上下限位置
+            <span class="help" tabindex="0" role="img" data-key="limits" aria-label="上下限位置说明"
+                  data-tip="lim / max / ∑ / ∏ 的上下限排在哪里：&#10;· 一律排下方：行内公式的上下限也放到下方，接近国内教材的习惯&#10;· 跟随 LaTeX 惯例：行内公式排在右侧、独立公式排在下方&#10;· 一律排右侧：任何情况都排在右侧&#10;积分的上下限始终在右侧。">?</span>
+          </span>
+          <select id="optLimits">
+            <option value="below" selected>一律排下方</option>
+            <option value="auto">跟随 LaTeX 惯例</option>
+            <option value="side">一律排右侧</option>
+          </select>
+        </label>
+        <label class="row">
+          <span class="row-head">大型运算符尺寸
+            <span class="help" tabindex="0" role="img" data-key="nary" aria-label="大型运算符尺寸说明"
+                  data-tip="∑ ∏ 这类大型运算符的字号：&#10;· 自动：操作数里有分式、根式等较高的内容时改用固定尺寸，普通求和保持 Word 原生&#10;· 一律固定：总是与正文同高，不随内容放大&#10;· 跟随内容：Word 原生行为，运算符会被分式撑大，可能出现四五倍字号的 ∑&#10;积分的上下限始终在右侧，不参与此项。">?</span>
+          </span>
+          <select id="optNary">
+            <option value="auto" selected>自动（内容高时固定尺寸）</option>
+            <option value="fixed">一律固定尺寸</option>
+            <option value="native">跟随内容（Word 原生）</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section class="sect">
+      <h4 class="sect-title">运行环境</h4>
+      <div class="env-row"><span>Python</span><code id="envPython">—</code></div>
+      <div class="env-row"><span>位置</span><code id="envPath">—</code></div>
+      <div class="env-row"><span>虚拟环境</span><code id="envVenv">—</code></div>
+      <button id="btnSwitchPython" class="ghost sm" type="button">切换 Python…</button>
+      <p class="note" id="envHint">切换后会重建运行环境并自动重启服务。</p>
+    </section>
+
+    <footer class="dialog-actions">
+      <button value="reset" class="ghost" type="button" id="btnResetSettings">恢复默认</button>
+      <button value="close" class="primary" type="submit">完成</button>
+    </footer>
+
+  </form>
+</dialog>
+
+<div id="toast" class="toast"></div>
+
+<script src="/static/vendor/katex/katex.min.js"></script>
+<script src="/static/app.js"></script>
+</body>
+</html>
