@@ -1,0 +1,7 @@
+{
+  "deepseekApiKey": "sk-在这里填入你的 DeepSeek API Key",
+  "deepseekModel": "deepseek-chat",
+  "deepseekApiUrl": "https://api.deepseek.com/chat/completions",
+  "baiduApiKey": "在这里填入百度智能云应用的 API Key",
+  "baiduSecretKey": "在这里填入百度智能云应用的 Secret Key"
+}

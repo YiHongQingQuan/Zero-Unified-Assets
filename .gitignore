@@ -1,0 +1,76 @@
+# ---------------------------------------------------------------
+# 密钥与本机配置（最重要，务必保留在忽略列表最前面）
+# ---------------------------------------------------------------
+# 真实密钥文件，只提交 api-config.example.json
+**/api-config.json
+**/api-config.local.json
+*.secret
+.env
+.env.*
+
+# ---------------------------------------------------------------
+# Unity 生成目录（不需要版本管理，重新打开工程会自动生成）
+# ---------------------------------------------------------------
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Mm]emoryCaptures/
+[Rr]ecordings/
+
+# 自动生成的工程文件（由 Unity 重新生成）
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Visual Studio / Rider / VS Code 缓存
+.vs/
+.idea/
+.vscode/
+*.DotSettings.user
+*.userprefs
+
+# Unity3D 自动生成的崩溃报告与资源数据库
+sysinfo.txt
+*.stackdump
+*.apk
+*.aab
+*.unitypackage
+*.app
+
+# ---------------------------------------------------------------
+# 构建产物与临时文件
+# ---------------------------------------------------------------
+crashlytics-build.properties
+/[Aa]ssets/[Aa]ssetStoreTools*
+/[Aa]ssets/[Pp]lugins/[Ee]ditor/JetBrains*
+/[Ee]xported[Oo]bj/
+/[Aa]ssets/StreamingAssets/aa.meta
+/[Aa]ssets/StreamingAssets/aa/*
+
+# ---------------------------------------------------------------
+# 操作系统与编辑器杂项
+# ---------------------------------------------------------------
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*~
+*.swp
+*.swo
+*.bak
+*.tmp

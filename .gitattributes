@@ -1,0 +1,40 @@
+# 仓库内统一以 LF 存储，避免不同系统间整文件 diff；
+# 检出时的换行符交给 core.autocrlf / 编辑器决定，Unity 与 VS/Rider 都能正常读取。
+* text=auto
+
+# 脚本：启用 C# 语法高亮的差异显示
+*.cs    text diff=csharp
+*.shader text
+*.md    text
+*.json  text
+*.yml   text
+*.asmdef text
+*.asmref text
+
+# Unity 文本资源
+*.unity    text
+*.prefab   text
+*.asset    text
+*.meta     text
+*.mat      text
+*.anim     text
+*.controller text
+*.physicMaterial text
+*.inputactions text
+
+# 二进制资源：不做换行符转换
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.psd  binary
+*.tga  binary
+*.fbx  binary
+*.wav  binary
+*.mp3  binary
+*.ogg  binary
+*.mp4  binary
+*.dll  binary
+*.exe  binary
+*.zip  binary
+*.unitypackage binary
