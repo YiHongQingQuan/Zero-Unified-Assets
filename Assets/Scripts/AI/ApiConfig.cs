@@ -28,9 +28,9 @@ public class ApiConfigData
 /// <summary>
 /// 统一读取 Assets/StreamingAssets/api-config.json 中的密钥。
 ///
-/// 设计目的：密钥不再以 public 字段的形式挂在 MonoBehaviour 上。
-/// 因为 Unity 会把 public 字段的值序列化进 .unity / .prefab / .asset 文件，
-/// 一旦把这些文件提交到 GitHub，密钥就永久留在了 git 历史里。
+/// 密钥放在独立的 JSON 文件里，而不是 MonoBehaviour 的字段上：
+/// Unity 会把 public 字段的值序列化进 .unity / .prefab / .asset，
+/// 这些文件一旦提交，密钥就永久留在 git 历史里了。
 ///
 /// 使用方式：
 ///   1. 把 Assets/StreamingAssets/api-config.example.json 复制为 api-config.json；

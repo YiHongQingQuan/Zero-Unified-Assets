@@ -4,16 +4,13 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
-/// 把「鼠标点击」翻译成「被点到的那个按钮」，替代
-/// <c>EventSystem.current.currentSelectedGameObject.name</c> 的写法。
+/// 把「鼠标点击」翻译成「被点到的那个按钮」。
 ///
-/// 原来的写法有两个问题：
-///   1. <c>currentSelectedGameObject</c> 是「当前选中对象」，不是「本次点击对象」。
-///      点到空白处时它是 null，直接取 <c>.name</c> 就是空引用异常；
-///   2. 它依赖 Button 组件被自动选中这一副作用，换成 Toggle、自定义控件就失效。
+/// 做法：用 EventSystem 从鼠标位置发一条 UI 射线，命中的若是 Text / Image 子节点，
+/// 就向上回溯到真正接收点击的控件（Selectable），因此不依赖层级结构和命名习惯。
+/// 结果按帧缓存，同一帧内多次查询只算一次。
 ///
-/// 这里的做法：用 EventSystem 从鼠标位置发一条 UI 射线，命中的若是 Text/Image 子节点，
-/// 就向上找到真正的控件（Selectable）。结果按帧缓存，同一帧内多次查询只算一次。
+/// 用法：<c>if (UiPointer.IsClickOn("MoveButton")) { ... }</c>
 /// </summary>
 public static class UiPointer
 {

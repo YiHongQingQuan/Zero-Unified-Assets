@@ -1,11 +1,10 @@
 using UnityEngine;
 
 /// <summary>
-/// 单块拼图：按住鼠标拖拽，松手时离目标点足够近就吸附归位，并通知所属的 <see cref="PuzzleGroup"/>。
+/// 单块拼图：按住鼠标拖拽，松手时离目标点足够近就吸附归位，
+/// 并通知所属的 <see cref="PuzzleGroup"/>。
 ///
-/// 原来的 <c>CE5PP</c> / <c>MainCPP</c> / <c>SatellitePP</c> 三份脚本逐行相同，
-/// 唯一区别是归位后通知哪个静态单例。现在合并成一个组件：
-/// 所属拼图组由 Inspector 的 <see cref="group"/> 字段指定，留空则自动向父节点查找。
+/// 所属拼图组由 <see cref="group"/> 指定，留空时自动向父节点查找。
 /// </summary>
 public class PuzzlePiece : MonoBehaviour
 {

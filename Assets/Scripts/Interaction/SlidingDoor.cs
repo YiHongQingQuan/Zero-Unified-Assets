@@ -1,11 +1,9 @@
 using UnityEngine;
 
 /// <summary>
-/// 双开自动门：触发器进入时滑开或合上。
+/// 双开自动门：触发器进入时滑开或合上，动作由 <see cref="onEnter"/> 决定。
 ///
-/// 原来 <c>DoorMove</c>（类名 <c>TriggerMove</c>）与 <c>DoorBack</c> 两份脚本逐行相同，
-/// 只有目标坐标不同 —— 一个负责打开、一个负责合上。这里合并成一个组件，
-/// 由 <see cref="onEnter"/> 决定触发器进入时执行哪种动作。
+/// 「打开」是滑到 Inspector 里设定的打开位置，「合上」是回到 Start 时记录的位置。
 /// </summary>
 public class SlidingDoor : MonoBehaviour
 {

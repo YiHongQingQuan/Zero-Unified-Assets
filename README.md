@@ -25,7 +25,8 @@
 ```
 Assets/
 ├── Scripts/
-│   ├── AI/            4      ApiConfig · DeepSeekAPI · TalkManager · VoiceToText
+│   ├── AI/            6      ApiConfig · DeepSeekAPI · DialogueLayout · DialogueView
+│   │                         TalkManager · VoiceToText
 │   ├── Interaction/   5      SlidingDoor · VideoPlay · VideoTrigger
 │   │                         PictureClickManager · ToPuzzleTrigger
 │   ├── Puzzle/        3      PuzzlePiece · PuzzleGroup · ToPuzzle
@@ -46,9 +47,11 @@ Assets/
 | 脚本 | 类名 | 职责 | 关键引用 |
 | --- | --- | --- | --- |
 | `AI/ApiConfig.cs` | `ApiConfig` | 读取 `StreamingAssets/api-config.json`，全局静态访问 | — |
-| `AI/DeepSeekAPI.cs` | `DeepSeekAPI` | 调用 DeepSeek `/chat/completions`，用回调把回答交给 UI | `loadingImage`、`aiCharacter`（角色名 + 人设） |
-| `AI/TalkManager.cs` | `TalkManager` | 文字输入框对话版：回车提交、手动排版、打字机输出 | `deepseekAPI`、`inputField`、`dialogueText` |
-| `AI/VoiceToText.cs` | `VoiceToText` | 录音 → 百度语音识别 → 转成提问 → 打字机输出 | `deepseekAPI`、`dialogueText`、`voiceImage`、`waitImage` |
+| `AI/DeepSeekAPI.cs` | `DeepSeekAPI` | 调用 DeepSeek `/chat/completions`，用回调把回答交给 UI；失败时给兜底文案 | `loadingImage`、`aiCharacter`（角色名 + 人设） |
+| `AI/DialogueLayout.cs` | `DialogueLayout` | 纯文本工具：按显示宽度折行（全角 1、半角 0.5），首行可单独设宽 | — |
+| `AI/DialogueView.cs` | `DialogueView` | 对话区排版：分隔线、缩进、说话人标签、打字机输出 | `output` |
+| `AI/TalkManager.cs` | `TalkManager` | 文字输入版对话：回车提交 → 显示发言 → 请求 AI → 逐字显示 | `deepSeek`、`dialogueView`、`inputField` |
+| `AI/VoiceToText.cs` | `VoiceToText` | 录音 → 百度语音识别 → 提问 → 逐字显示 | `deepSeek`、`dialogueView`、`recordingHint`、`waitingHint` |
 
 ### Interaction
 
@@ -81,7 +84,7 @@ Assets/
 
 | 脚本 | 类名 | 职责 | 关键引用 |
 | --- | --- | --- | --- |
-| `Station/KJZMove.cs` | `KJZMove` | 五舱段拆解/复位、按钮互斥、主相机与展厅相机切换 | 五个舱段对象、三个按钮、两个相机 |
+| `Station/KJZMove.cs` | `KJZMove` | 舱段拆解/复位动画、按钮互斥、主相机与展厅相机切换 | `modules[]`（舱段 + 拆解位置）、三个按钮、两个相机 |
 | `Station/Movetext1.cs` | `Movetext1` | 用 Animator 的 bool `IsPlay` 驱动讲解文字动画 | 自身 `Animator` |
 | `Station/Next.cs` | `Next` | 讲解画布翻页 | `NowCanva`/`NextCanva`、`NowObject`/`NextObject` |
 | `Station/Start.cs` | `Start` | 空间站内讲解 / 拆解 / 返回按钮总控 | 画布、按钮、相机、摇杆 |
@@ -113,6 +116,14 @@ Assets/
 另外新增了 `UI/UiPointer.cs`。所有脚本里原来判断
 `EventSystem.current.currentSelectedGameObject.name == "X"` 的地方，
 现在都改成 `UiPointer.IsClickOn("X")`，**按钮名不需要改**。
+
+对话部分也做了拆分，场景里需要补两个新组件：
+
+| 旧写法 | 新组件 | 需要做的事 |
+| --- | --- | --- |
+| `TalkManager.dialogueText` / `typingSpeed` | `DialogueView` | 在对话文本对象上挂 `DialogueView`，把 `output` 指到同一个 `Text`；`TalkManager` / `VoiceToText` 里的 `dialogueView` 拖这个组件 |
+| `VoiceToText.dialogueText` | 同上 | `deepseekAPI` → `deepSeek`，`voiceImage` → `recordingHint`，`waitImage` → `waitingHint` |
+| `KJZMove` 的 5 个舱段字段 | `modules[]` | 数组里加 5 项，每项填「舱段对象 + 拆解位置」；合拢位置仍由脚本在 Start 时自动记录 |
 
 ## 快速开始
 
@@ -193,18 +204,12 @@ cp Assets/StreamingAssets/api-config.example.json Assets/StreamingAssets/api-con
 
 ## 已知问题
 
-已完成：死循环、空引用、拼图/门的重复实现。以下问题**仍然存在**，接手时请留意：
-
 | 级别 | 位置 | 问题 |
 | --- | --- | --- |
-| 🔴 | `AI/DeepSeekAPI.cs:61` | `response.choices[0]` 没有任何容错，断网 / 超时 / 限流都会空引用，且 `loadingImage` 不会消失 |
-| 🟠 | `AI/VoiceToText.cs:40,45` | `Microphone.GetPosition` 忙等之后又 `WaitForSeconds(5)`，实际要等约 10 秒 |
-| 🟠 | `AI/VoiceToText.cs:108` | `response.result[0]` 未判空，识别失败时越界 |
-| 🟠 | `AI/TalkManager.cs`、`AI/VoiceToText.cs` | 排版与打字机逻辑各一份（手写 28 全角宽度换行，用 `goto`），应抽成公共组件 |
 | 🟡 | `Roaming/MyJoystick.cs:13` | 用屏幕坐标 `eventData.position` 减世界坐标 `startPosition`，拖拽手感漂移 |
 | 🟡 | `Roaming/MyJoystickBoxMove.cs:15` | `FixedUpdate` 里用 `Time.deltaTime`，应为 `Time.fixedDeltaTime` |
 | 🟡 | `Interaction/SlidingDoor.cs` | 打开位置以世界坐标写在 Inspector 里，换场景需重新摆 |
-| 🟡 | `AI/*` | 逐字符 `Debug.Log`，且每写一个字就重设 `Text.text`，触发整块 UI 重建 |
+| 🟡 | `AI/DialogueView.cs` | 逐字输出时每写一个字就重设 `Text.text`，会触发整块 UI 重建；换 TextMeshPro 可缓解 |
 | 🟡 | `Interaction/PictureClickManager.cs` | `listLen` 未与 `canvas` / `transforms` 实际长度校验，越界即崩 |
 
 **文件名与类名不一致**（Unity 允许，但检索时容易找不到）：
@@ -220,9 +225,9 @@ cp Assets/StreamingAssets/api-config.example.json Assets/StreamingAssets/api-con
 
 - [x] 合并三套拼图、两套门脚本
 - [x] 修复 `KJZMove` 死循环与全局空引用问题
+- [x] 抽出对话排版与打字机组件（`DialogueLayout` + `DialogueView`）
+- [x] `DeepSeekAPI` / `VoiceToText` 补网络错误处理
 - [ ] 把按钮监听改为 `IPointerClickHandler` / `EventTrigger`，去掉按名字硬编码
-- [ ] `DeepSeekAPI` / `VoiceToText` 补网络错误处理（超时、限流、识别失败）
-- [ ] 抽出对话排版与打字机组件
 - [ ] UI 迁移到 TextMeshPro
 - [ ] 补一份可运行的示例场景
 
