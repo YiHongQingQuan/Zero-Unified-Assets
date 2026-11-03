@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 public class Next : MonoBehaviour
 {
@@ -11,7 +10,7 @@ public class Next : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            if (EventSystem.current.currentSelectedGameObject.name == "Next")
+            if (UiPointer.IsClickOn("Next"))
             {
                 NowObject.SetActive(false);
                 NextObject.SetActive(true);

@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 public class ToShowRoom : MonoBehaviour
 {
@@ -18,7 +17,7 @@ public class ToShowRoom : MonoBehaviour
     {
         if (Input.GetMouseButtonUp(0))
         {
-            if (EventSystem.current.currentSelectedGameObject.name == "ToShowButton")
+            if (UiPointer.IsClickOn("ToShowButton"))
             {
                 showRoomCanvas.SetActive(true);
                 functionCanvas.SetActive(false);

@@ -1,41 +1,31 @@
-using System;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
+/// <summary>
+/// 空间站五舱段的拆解 / 复位动画，以及主相机与展厅相机之间的切换。
+///
+/// 原实现把 <c>while (position != target)</c> 直接写在 Update 里，会在一帧内死循环：
+/// Time.deltaTime 为 0 时（暂停、首帧）条件永远成立，直接卡死编辑器。
+/// 这里改成协程按时间插值，每帧只推进一步。
+/// </summary>
 public class KJZMove : MonoBehaviour
 {
-    [Header("天和舱")]
+    [Header("舱段")]
     public GameObject tianhe;
-    private Transform tianheTransform;
-    public Vector3 tianheStartPos;
-    public Vector3 tianheTargetPos = new Vector3(-12.4f, -175f, 124.22f);
-
-    [Header("天舟飞船")]
     public GameObject tianzhou;
-    private Transform tianzhouTransform;
-    public Vector3 tianzhouStartPos;
-    public Vector3 tianzhouTargetPos = new Vector3(-12.4f, -177.1f, 124.22f);
-
-    [Header("梦天舱")]
     public GameObject mengtian;
-    private Transform mengtianTransform;
-    public Vector3 mengtianStartPos;
-    public Vector3 mengtianTargetPos = new Vector3(-9.74f, -173.9f, 124.21f);
-
-    [Header("神舟飞船")]
     public GameObject shenzhou;
-    private Transform shenzhouTransform;
-    public Vector3 shenzhouStartPos;
-    public Vector3 shenzhouTargetPos = new Vector3(-12.4f, -171.96f, 124.22f);
-
-    [Header("问天舱")]
     public GameObject wentian;
-    private Transform wentianTransform;
-    public Vector3 wentianStartPos;
+
+    [Header("拆解后的目标位置")]
+    public Vector3 tianheTargetPos = new Vector3(-12.4f, -175f, 124.22f);
+    public Vector3 tianzhouTargetPos = new Vector3(-12.4f, -177.1f, 124.22f);
+    public Vector3 mengtianTargetPos = new Vector3(-9.74f, -173.9f, 124.21f);
+    public Vector3 shenzhouTargetPos = new Vector3(-12.4f, -171.96f, 124.22f);
     public Vector3 wentianTargetPos = new Vector3(-15.24f, -173.9f, 124.2f);
 
-    [Header("其它参数")]
+    [Header("参数")]
+    [Tooltip("舱段移动速度，单位：米/秒")]
     public float speed = 1f;
 
     [Header("按钮")]
@@ -43,95 +33,159 @@ public class KJZMove : MonoBehaviour
     public GameObject moveBackButton;
     public GameObject introduceButton;
 
-    [Header("画布")]
-    public GameObject joystick;
-    public GameObject functionCanvas;
-    public GameObject showRoomCanvas;
-
-    [Header("摄像机")]
+    [Header("相机")]
     public GameObject mainCamera;
     public GameObject showRoomCamera;
 
+    private Transform tianheT;
+    private Transform tianzhouT;
+    private Transform mengtianT;
+    private Transform shenzhouT;
+    private Transform wentianT;
+
+    private Vector3 tianheHome;
+    private Vector3 tianzhouHome;
+    private Vector3 mengtianHome;
+    private Vector3 shenzhouHome;
+    private Vector3 wentianHome;
+
+    private Coroutine movingRoutine;
+
     private void Start()
     {
-        tianheTransform = tianhe.transform;
-        tianheStartPos = tianhe.transform.position;
-
-        tianzhouTransform = tianzhou.transform;
-        tianzhouStartPos = tianzhou.transform.position;
-
-        mengtianTransform = mengtian.transform;
-        mengtianStartPos = mengtian.transform.position;
-
-        shenzhouTransform = shenzhou.transform;
-        shenzhouStartPos = shenzhou.transform.position;
-
-        wentianTransform = wentian.transform;
-        wentianStartPos = wentian.transform.position;
-        //enabled = false;
-    }
-
-    private void OnMouseUpAsButton()
-    {
-        //enabled = true;
-    }
-
-    void Update()
-    {
-        if (Input.GetMouseButtonUp(0))
+        if (tianhe == null || tianzhou == null || mengtian == null ||
+            shenzhou == null || wentian == null)
         {
-            if (EventSystem.current.currentSelectedGameObject.name == "MoveButton")
-            {
-                Debug.Log("测试1");
-                moveButton.SetActive(false);
-                introduceButton.SetActive(false);
-                moveBackButton.SetActive(true);
+            Debug.LogError("[KJZMove] 舱段引用未在 Inspector 中赋值，脚本已停用。", this);
+            enabled = false;
+            return;
+        }
 
-                //StartCoroutine(MoveTo(tianheTransform, tianheTargetPos, 2f, () => { }));
+        // 记录合拢时（Start 那一刻）的位置，复位时用
+        tianheT = tianhe.transform;
+        tianheHome = tianheT.position;
 
-                while (tianheTransform.position != tianheTargetPos)
-                {
-                    tianheTransform.position = Vector3.MoveTowards(tianheTransform.position, tianheTargetPos, speed * Time.deltaTime);
-                }
+        tianzhouT = tianzhou.transform;
+        tianzhouHome = tianzhouT.position;
 
-                //tianheTransform.position = Vector3.MoveTowards(tianheTransform.position, tianheTargetPos, speed * Time.deltaTime);
-                tianzhouTransform.position = Vector3.MoveTowards(tianzhouTransform.position, tianzhouTargetPos, speed * Time.deltaTime);
-                mengtianTransform.position = Vector3.MoveTowards(mengtianTransform.position, mengtianTargetPos, speed * Time.deltaTime);
-                shenzhouTransform.position = Vector3.MoveTowards(shenzhouTransform.position, shenzhouTargetPos, speed * Time.deltaTime);
-                wentianTransform.position = Vector3.MoveTowards(wentianTransform.position, wentianTargetPos, speed * Time.deltaTime);
-            }
-            if (EventSystem.current.currentSelectedGameObject.name == "MoveBackButton")
-            {
-                Debug.Log("测试2");
-                moveButton.SetActive(true);
-                introduceButton.SetActive(true);
-                moveBackButton.SetActive(false);
-                tianheTransform.position = Vector3.MoveTowards(tianheTargetPos, tianheTransform.position, speed * Time.deltaTime);
-                tianzhouTransform.position = Vector3.MoveTowards(tianzhouTargetPos, tianzhouTransform.position, speed * Time.deltaTime);
-                mengtianTransform.position = Vector3.MoveTowards(mengtianTargetPos, mengtianTransform.position, speed * Time.deltaTime);
-                shenzhouTransform.position = Vector3.MoveTowards(shenzhouTargetPos, shenzhouTransform.position, speed * Time.deltaTime);
-                wentianTransform.position = Vector3.MoveTowards(wentianTargetPos, wentianTransform.position, speed * Time.deltaTime);
-            }
-            if (EventSystem.current.currentSelectedGameObject.name == "BackButton")
-            {
-                mainCamera.SetActive(true);
-                showRoomCamera.SetActive(false);
-            }
+        mengtianT = mengtian.transform;
+        mengtianHome = mengtianT.position;
+
+        shenzhouT = shenzhou.transform;
+        shenzhouHome = shenzhouT.position;
+
+        wentianT = wentian.transform;
+        wentianHome = wentianT.position;
+    }
+
+    private void Update()
+    {
+        if (!Input.GetMouseButtonUp(0))
+        {
+            return;
+        }
+
+        if (UiPointer.IsClickOn("MoveButton"))
+        {
+            Disassemble();
+        }
+        else if (UiPointer.IsClickOn("MoveBackButton"))
+        {
+            Reassemble();
+        }
+        else if (UiPointer.IsClickOn("BackButton"))
+        {
+            BackToMainCamera();
         }
     }
 
-    public IEnumerator MoveTo (Transform transform, Vector3 end, float seconds, Action finish)
+    /// <summary>拆解：舱段散开，按钮切换为「复位」。</summary>
+    public void Disassemble()
     {
-        float time = 0;
-        Vector3 start = transform.position;
-        var wait = new WaitForEndOfFrame();
-        while (time < seconds)
+        if (moveButton != null) moveButton.SetActive(false);
+        if (introduceButton != null) introduceButton.SetActive(false);
+        if (moveBackButton != null) moveBackButton.SetActive(true);
+
+        MoveAll(tianheTargetPos, tianzhouTargetPos, mengtianTargetPos,
+                shenzhouTargetPos, wentianTargetPos);
+    }
+
+    /// <summary>复位：舱段回到 Start 时记录的合拢位置。</summary>
+    public void Reassemble()
+    {
+        if (moveButton != null) moveButton.SetActive(true);
+        if (introduceButton != null) introduceButton.SetActive(true);
+        if (moveBackButton != null) moveBackButton.SetActive(false);
+
+        MoveAll(tianheHome, tianzhouHome, mengtianHome, shenzhouHome, wentianHome);
+    }
+
+    /// <summary>从展厅相机切回主相机。</summary>
+    public void BackToMainCamera()
+    {
+        if (mainCamera != null) mainCamera.SetActive(true);
+        if (showRoomCamera != null) showRoomCamera.SetActive(false);
+    }
+
+    private void MoveAll(Vector3 toTianhe, Vector3 toTianzhou, Vector3 toMengtian,
+                         Vector3 toShenzhou, Vector3 toWentian)
+    {
+        if (movingRoutine != null)
         {
-            transform.position = Vector3.Lerp(start, end, (time / seconds));
-            time += Time.deltaTime;
-            yield return wait;
+            StopCoroutine(movingRoutine);
         }
-        transform.position = end;
-        finish?.Invoke();
+
+        movingRoutine = StartCoroutine(MoveAllRoutine(
+            toTianhe, toTianzhou, toMengtian, toShenzhou, toWentian));
+    }
+
+    private IEnumerator MoveAllRoutine(Vector3 toTianhe, Vector3 toTianzhou, Vector3 toMengtian,
+                                       Vector3 toShenzhou, Vector3 toWentian)
+    {
+        Vector3 fromTianhe = tianheT.position;
+        Vector3 fromTianzhou = tianzhouT.position;
+        Vector3 fromMengtian = mengtianT.position;
+        Vector3 fromShenzhou = shenzhouT.position;
+        Vector3 fromWentian = wentianT.position;
+
+        // 按最远的那一段决定总时长，保证五个舱段同时到达
+        float duration = Mathf.Max(
+            TravelTime(fromTianhe, toTianhe),
+            Mathf.Max(
+                TravelTime(fromTianzhou, toTianzhou),
+                Mathf.Max(
+                    TravelTime(fromMengtian, toMengtian),
+                    Mathf.Max(
+                        TravelTime(fromShenzhou, toShenzhou),
+                        TravelTime(fromWentian, toWentian)))));
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+
+            tianheT.position = Vector3.Lerp(fromTianhe, toTianhe, t);
+            tianzhouT.position = Vector3.Lerp(fromTianzhou, toTianzhou, t);
+            mengtianT.position = Vector3.Lerp(fromMengtian, toMengtian, t);
+            shenzhouT.position = Vector3.Lerp(fromShenzhou, toShenzhou, t);
+            wentianT.position = Vector3.Lerp(fromWentian, toWentian, t);
+
+            yield return null;
+        }
+
+        // 收尾时精确落位，避免插值残留的浮点误差
+        tianheT.position = toTianhe;
+        tianzhouT.position = toTianzhou;
+        mengtianT.position = toMengtian;
+        shenzhouT.position = toShenzhou;
+        wentianT.position = toWentian;
+
+        movingRoutine = null;
+    }
+
+    private float TravelTime(Vector3 from, Vector3 to)
+    {
+        return Vector3.Distance(from, to) / Mathf.Max(0.01f, speed);
     }
 }

@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
 public class FunctionCanvas : MonoBehaviour
@@ -15,11 +14,11 @@ public class FunctionCanvas : MonoBehaviour
     {
         if (Input.GetMouseButtonUp(0))
         {
-            if (EventSystem.current.currentSelectedGameObject.name == "ESCButton")
+            if (UiPointer.IsClickOn("ESCButton"))
             {
                 SceneManager.LoadScene("StartUI");
             }
-            if (EventSystem.current.currentSelectedGameObject.name == "AIButton")
+            if (UiPointer.IsClickOn("AIButton"))
             {
                 ai.SetActive(true);
                 //ESCAIButton.SetActive(true);
@@ -28,7 +27,7 @@ public class FunctionCanvas : MonoBehaviour
                 AIButton.SetActive(false);
                 
             }
-            if (EventSystem.current.currentSelectedGameObject.name == "ESCAIButton")
+            if (UiPointer.IsClickOn("ESCAIButton"))
             {
                 ai.SetActive(false);
                 joystick.SetActive(true);

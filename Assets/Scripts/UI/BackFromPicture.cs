@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 public class BackFromPicture : MonoBehaviour
 {
@@ -11,7 +10,7 @@ public class BackFromPicture : MonoBehaviour
     {
         if (Input.GetMouseButtonUp(0))
         {
-            if (EventSystem.current.currentSelectedGameObject.name == "Button (Legacy)")
+            if (UiPointer.IsClickOn("Button (Legacy)"))
             {
                 canvas.gameObject.SetActive(false);
             }

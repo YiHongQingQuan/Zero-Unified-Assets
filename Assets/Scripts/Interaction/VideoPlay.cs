@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.Video;
 
 public class PlayVideo : MonoBehaviour
@@ -12,9 +11,9 @@ public class PlayVideo : MonoBehaviour
     {
         if (Input.GetMouseButtonUp(0))
         {
-            if (EventSystem.current.currentSelectedGameObject.name == "Button (Legacy)")
+            if (UiPointer.IsClickOn("Button (Legacy)"))
             {
-                if (!isPlay && EventSystem.current.currentSelectedGameObject == button)
+                if (!isPlay && UiPointer.ClickedButton() == button)
                 {
                     isPlay = true;
                     vPlayer.Play();

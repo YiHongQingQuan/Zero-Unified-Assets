@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 public class Movetext1 : MonoBehaviour
 {
@@ -12,20 +11,15 @@ public class Movetext1 : MonoBehaviour
 
     public void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (!Input.GetMouseButtonDown(0)) return;
+
+        if (UiPointer.IsClickOn("MoveButton"))
         {
-            var currentSelected = EventSystem.current?.currentSelectedGameObject;
-            if (currentSelected != null && EventSystem.current.currentSelectedGameObject.name == "MoveButton")
-            {
-                animator.SetBool("IsPlay", true);
-                Debug.Log("播放完成");
-            }
-            if (currentSelected != null && EventSystem.current.currentSelectedGameObject.name == "MoveBackButton")
-            {
-                animator.SetBool("IsPlay", false);
-                Debug.Log("播放完成");
-            }
+            animator.SetBool("IsPlay", true);
         }
-        
+        if (UiPointer.IsClickOn("MoveBackButton"))
+        {
+            animator.SetBool("IsPlay", false);
+        }
     }
 }

@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.Networking;
 using System.Collections;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System.Text;
 using System;
@@ -25,15 +24,11 @@ public class VoiceToText : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && UiPointer.IsClickOn("VoiceButton"))
         {
-            GameObject tmp = EventSystem.current?.currentSelectedGameObject;
-            if (tmp != null && EventSystem.current.currentSelectedGameObject.name == "VoiceButton")
-            {
-                Debug.Log("录音按钮被按下");
-                voiceImage.SetActive(true);
-                StartCoroutine(RecordAndRecognize());
-            }
+            Debug.Log("录音按钮被按下");
+            voiceImage.SetActive(true);
+            StartCoroutine(RecordAndRecognize());
         }
     }
 

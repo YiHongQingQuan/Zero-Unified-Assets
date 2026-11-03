@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 public class Start : MonoBehaviour
 {
@@ -25,7 +24,7 @@ public class Start : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            if (EventSystem.current.currentSelectedGameObject.name == "IntroduceButton")
+            if (UiPointer.IsClickOn("IntroduceButton"))
             {
                 NowObject.SetActive(false);
                 NextObject.SetActive(true);
@@ -34,7 +33,7 @@ public class Start : MonoBehaviour
                 NowCanva.SetActive(false);
             }
 
-            if (EventSystem.current.currentSelectedGameObject.name == "MoveButton")
+            if (UiPointer.IsClickOn("MoveButton"))
             {
                 moveBackButton.SetActive(true);
                 if (introduceButton != null)
@@ -43,7 +42,7 @@ public class Start : MonoBehaviour
                 }
                 moveButton.SetActive(false);
             }
-            if (EventSystem.current.currentSelectedGameObject.name == "MoveBackButton")
+            if (UiPointer.IsClickOn("MoveBackButton"))
             {
                 moveBackButton.SetActive(false);
                 if (introduceButton != null)
@@ -52,7 +51,7 @@ public class Start : MonoBehaviour
                 }
                 moveButton.SetActive(true);
             }
-            if (EventSystem.current.currentSelectedGameObject.name == "BackButton")
+            if (UiPointer.IsClickOn("BackButton"))
             {
                 fuctionCanva.SetActive(true);
                 showCamera.SetActive(false);

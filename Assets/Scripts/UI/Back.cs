@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 public class Back : MonoBehaviour
 {
@@ -12,7 +11,7 @@ public class Back : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            if (EventSystem.current.currentSelectedGameObject.name == "Button (Legacy)")
+            if (UiPointer.IsClickOn("Button (Legacy)"))
             {
                 joystick.SetActive(true);
                 NowCamera.SetActive(false);

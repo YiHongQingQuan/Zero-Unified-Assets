@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
 public class ToStart : MonoBehaviour
@@ -8,7 +7,7 @@ public class ToStart : MonoBehaviour
     {
         if (Input.GetMouseButtonUp(0))
         {
-            if (EventSystem.current.currentSelectedGameObject.name == "ESCButton")
+            if (UiPointer.IsClickOn("ESCButton"))
             {
                 SceneManager.LoadScene("StartUI");
             }
