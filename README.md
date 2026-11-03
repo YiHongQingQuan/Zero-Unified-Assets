@@ -102,29 +102,6 @@ Assets/
 | `UI/StartUIButtonManager.cs` | `StartUIButtonManager` | 启动页按钮 → 航天 / AR / 退出 | `buttons[]` |
 | `UI/ToStart.cs` | `ToStart` | ESC 回启动页 | — |
 
-## 从旧版本迁移
-
-重构时合并/删除了 8 个脚本。如果你的场景里还挂着旧组件，会显示 **Missing Script**，按下表替换：
-
-| 旧脚本 | 新组件 | 需要做的事 |
-| --- | --- | --- |
-| `CE5PP` / `MainCPP` / `SatellitePP` | `PuzzlePiece` | 逐块替换；`m_Camera`/`camera` → `pickupCamera`，`maxLen` → `snapDistance`；`group` 留空会自动向父节点找 `PuzzleGroup` |
-| `CE5PA` / `MainCPA` / `SatellitePA` | `PuzzleGroup` | 挂在原来的父节点上，`gameOverPanel` → `completePanel` |
-| `DoorMove`（类名 `TriggerMove`） | `SlidingDoor` | `onEnter = Open`；`door1`/`door2` → `leftPanel`/`rightPanel`，`target1Pos`/`target2Pos` → `leftOpenPosition`/`rightOpenPosition` |
-| `DoorBack` | `SlidingDoor` | `onEnter = Close`，其余同上 |
-
-另外新增了 `UI/UiPointer.cs`。所有脚本里原来判断
-`EventSystem.current.currentSelectedGameObject.name == "X"` 的地方，
-现在都改成 `UiPointer.IsClickOn("X")`，**按钮名不需要改**。
-
-对话部分也做了拆分，场景里需要补两个新组件：
-
-| 旧写法 | 新组件 | 需要做的事 |
-| --- | --- | --- |
-| `TalkManager.dialogueText` / `typingSpeed` | `DialogueView` | 在对话文本对象上挂 `DialogueView`，把 `output` 指到同一个 `Text`；`TalkManager` / `VoiceToText` 里的 `dialogueView` 拖这个组件 |
-| `VoiceToText.dialogueText` | 同上 | `deepseekAPI` → `deepSeek`，`voiceImage` → `recordingHint`，`waitImage` → `waitingHint` |
-| `KJZMove` 的 5 个舱段字段 | `modules[]` | 数组里加 5 项，每项填「舱段对象 + 拆解位置」；合拢位置仍由脚本在 Start 时自动记录 |
-
 ## 快速开始
 
 ### 1. 环境
@@ -163,9 +140,10 @@ cp Assets/StreamingAssets/api-config.example.json Assets/StreamingAssets/api-con
 > 只要提交了这些文件，密钥就永久留在 git 历史里，删掉也救不回来。
 > 所以现在密钥只在 `StreamingAssets` 的独立 JSON 里，代码通过 `ApiConfig.Current` 读取。
 
-> ⚠️ **从旧工程导入场景时必看**
-> 关闭旧脚本的 `apiKey` / `api` / `secret` 字段**不会**清掉场景 YAML 里已存的值。
-> 迁移前请先在 Inspector 里清空这几个字段并保存，或直接文本搜索场景文件：
+> ⚠️ **场景文件里残留的密钥**
+> 如果你曾经把 Key 直接填在 Inspector 的字段里，那么改脚本、删字段都**不会**清掉
+> `.unity` / `.prefab` 里已经存下的值 —— 它们还在 YAML 文本中。
+> 提交前先在 Inspector 里清空这些字段并保存，或直接搜索场景文件：
 >
 > ```bash
 > git grep -n -i -E 'apiKey|client_secret|"secret"' -- '*.unity' '*.prefab' '*.asset'
